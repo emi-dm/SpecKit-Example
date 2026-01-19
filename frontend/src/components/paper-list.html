@@ -1,0 +1,67 @@
+<!-- Paper List Component -->
+<div id="paperList" class="tw-grid tw-gap-4">
+    <!-- Papers will be dynamically inserted here -->
+</div>
+
+<div id="pagination" class="tw-mt-6 tw-flex tw-justify-center">
+    <!-- Pagination controls will be inserted here -->
+</div>
+
+<template id="paperCardTemplate">
+    <div class="card tw-shadow-sm hover:tw-shadow-md tw-transition-shadow paper-card">
+        <div class="card-body">
+            <div class="tw-flex tw-justify-between tw-items-start tw-mb-2">
+                <h5 class="card-title tw-text-lg tw-font-semibold tw-mb-2 paper-title"></h5>
+                <button class="btn btn-sm btn-danger delete-btn" title="Delete paper">
+                    🗑️
+                </button>
+            </div>
+
+            <p class="card-text tw-text-sm tw-text-gray-600 tw-mb-2 paper-authors"></p>
+
+            <div class="tw-flex tw-gap-2 tw-mb-3">
+                <span class="badge bg-primary paper-source"></span>
+                <span class="badge bg-secondary paper-year"></span>
+                <span class="badge bg-info paper-citations" style="display:none;"></span>
+            </div>
+
+            <p class="card-text tw-text-sm paper-abstract"></p>
+
+            <div class="tw-mt-3 tw-flex tw-gap-2 tw-flex-wrap">
+                <a href="#" class="btn btn-sm btn-outline-primary paper-url" target="_blank">
+                    📄 View Paper
+                </a>
+                <a href="#" class="btn btn-sm btn-outline-secondary paper-pdf" target="_blank" style="display:none;">
+                    📥 PDF
+                </a>
+            </div>
+
+            <div class="tw-mt-2 tw-text-xs tw-text-gray-500 paper-meta"></div>
+        </div>
+    </div>
+</template>
+
+<template id="emptyStateTemplate">
+    <div class="tw-text-center tw-py-12">
+        <div class="tw-text-6xl tw-mb-4">📚</div>
+        <h3 class="tw-text-xl tw-font-semibold tw-mb-2 tw-text-gray-700">No papers found</h3>
+        <p class="tw-text-gray-600">Try a different search query or add papers to your repository</p>
+    </div>
+</template>
+
+<style>
+    .paper-card {
+        transition: all 0.2s;
+    }
+
+    .paper-card:hover {
+        transform: translateY(-2px);
+    }
+
+    .paper-abstract {
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+</style>

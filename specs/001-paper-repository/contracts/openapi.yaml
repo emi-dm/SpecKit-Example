@@ -1,0 +1,623 @@
+openapi: 3.0.3
+info:
+  title: Paper Repository API
+  description: REST API for managing academic research papers from arXiv and DBLP sources
+  version: 1.0.0
+  contact:
+    name: Paper Repository
+    email: support@example.com
+
+servers:
+  - url: http://localhost:3000/api
+    description: Development server
+  - url: https://api.paperrepository.com/api
+    description: Production server
+
+tags:
+  - name: papers
+    description: Paper management operations
+  - name: search
+    description: Search and discovery
+  - name: fetch
+    description: External API integration
+
+paths:
+  /papers:
+    get:
+      tags:
+        - papers
+      summary: List all papers
+      description: Retrieve all papers from the repository with optional filtering and pagination
+      operationId: listPapers
+      parameters:
+        - name: page
+          in: query
+          description: Page number for pagination
+          required: false
+          schema:
+            type: integer
+            default: 1
+            minimum: 1
+        - name: limit
+          in: query
+          description: Number of papers per page
+          required: false
+          schema:
+            type: integer
+            default: 20
+            minimum: 1
+            maximum: 100
+        - name: source
+          in: query
+          description: Filter by paper source
+          required: false
+          schema:
+            type: string
+            enum: [arxiv, dblp, manual]
+        - name: year
+          in: query
+          description: Filter by publication year
+          required: false
+          schema:
+            type: integer
+            minimum: 1900
+            maximum: 2100
+        - name: sort
+          in: query
+          description: Sort papers by field
+          required: false
+          schema:
+            type: string
+            enum: [date, citations, title, relevance]
+            default: date
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  papers:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Paper'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    
+    post:
+      tags:
+        - papers
+      summary: Add a new paper
+      description: Add a paper to the repository (manual entry or from external source)
+      operationId: addPaper
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PaperInput'
+      responses:
+        '201':
+          description: Paper successfully added
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  paper:
+                    $ref: '#/components/schemas/Paper'
+                  message:
+                    type: string
+                    example: Paper added successfully
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '409':
+          description: Paper already exists (duplicate DOI or title+author)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: DuplicateError
+                  message:
+                    type: string
+                    example: Paper already exists in repository
+                  existingPaper:
+                    $ref: '#/components/schemas/Paper'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /papers/{id}:
+    get:
+      tags:
+        - papers
+      summary: Get paper by ID
+      description: Retrieve a specific paper by its unique identifier
+      operationId: getPaperById
+      parameters:
+        - name: id
+          in: path
+          description: Paper UUID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Paper'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    
+    delete:
+      tags:
+        - papers
+      summary: Delete a paper
+      description: Remove a paper from the repository
+      operationId: deletePaper
+      parameters:
+        - name: id
+          in: path
+          description: Paper UUID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Paper successfully deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Paper deleted successfully
+                  deletedId:
+                    type: string
+                    format: uuid
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /search:
+    get:
+      tags:
+        - search
+      summary: Search papers
+      description: Search papers by title, author, keywords, or abstract
+      operationId: searchPapers
+      parameters:
+        - name: q
+          in: query
+          description: Search query string
+          required: true
+          schema:
+            type: string
+            maxLength: 200
+            example: machine learning
+        - name: source
+          in: query
+          description: Filter by paper source
+          required: false
+          schema:
+            type: string
+            enum: [arxiv, dblp, manual, all]
+            default: all
+        - name: page
+          in: query
+          description: Page number for pagination
+          required: false
+          schema:
+            type: integer
+            default: 1
+            minimum: 1
+        - name: limit
+          in: query
+          description: Number of results per page
+          required: false
+          schema:
+            type: integer
+            default: 20
+            minimum: 1
+            maximum: 100
+        - name: sort
+          in: query
+          description: Sort results by
+          required: false
+          schema:
+            type: string
+            enum: [relevance, date, citations]
+            default: relevance
+      responses:
+        '200':
+          description: Search results
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  query:
+                    type: string
+                  results:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Paper'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+                  totalResults:
+                    type: integer
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /fetch:
+    post:
+      tags:
+        - fetch
+      summary: Fetch paper from external API
+      description: Fetch paper metadata from arXiv or DBLP by DOI, URL, or arXiv ID
+      operationId: fetchPaper
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - identifier
+                - source
+              properties:
+                identifier:
+                  type: string
+                  description: DOI, URL, or source-specific ID (e.g., arXiv ID)
+                  example: "1706.03762"
+                source:
+                  type: string
+                  enum: [arxiv, dblp]
+                  description: Which API to query
+                autoAdd:
+                  type: boolean
+                  default: false
+                  description: Automatically add to repository if true
+      responses:
+        '200':
+          description: Paper metadata fetched successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  paper:
+                    $ref: '#/components/schemas/Paper'
+                  added:
+                    type: boolean
+                    description: True if autoAdd was enabled and paper was added
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '404':
+          description: Paper not found in external source
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: NotFoundError
+                  message:
+                    type: string
+                    example: Paper not found in arXiv
+        '502':
+          description: External API error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: ExternalAPIError
+                  message:
+                    type: string
+                    example: arXiv API timeout
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /health:
+    get:
+      tags:
+        - health
+      summary: Health check
+      description: Check if the API is running
+      operationId: healthCheck
+      responses:
+        '200':
+          description: API is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ok
+                  timestamp:
+                    type: string
+                    format: date-time
+
+components:
+  schemas:
+    Paper:
+      type: object
+      required:
+        - id
+        - title
+        - authors
+        - abstract
+        - publicationDate
+        - source
+        - url
+        - year
+        - addedAt
+        - updatedAt
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique identifier
+          example: a3f5d8e2-4b6c-4f89-9a2e-5d7c8b3e4f5a
+        doi:
+          type: string
+          pattern: '^10\.\d{4,}'
+          description: Digital Object Identifier (optional but unique)
+          example: 10.48550/arXiv.1706.03762
+        title:
+          type: string
+          minLength: 1
+          maxLength: 500
+          description: Paper title
+          example: Attention Is All You Need
+        authors:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/Author'
+        abstract:
+          type: string
+          minLength: 10
+          maxLength: 5000
+          description: Paper abstract or summary
+          example: The dominant sequence transduction models...
+        publicationDate:
+          type: string
+          format: date
+          description: Publication date (ISO 8601)
+          example: "2017-06-12"
+        source:
+          type: string
+          enum: [arxiv, dblp, manual]
+          description: Origin of the paper
+          example: arxiv
+        sourceId:
+          type: string
+          description: Original ID from source
+          example: "1706.03762"
+        keywords:
+          type: array
+          items:
+            type: string
+          maxItems: 20
+          description: Searchable keywords
+          example: [attention, transformer, neural networks, NLP]
+        url:
+          type: string
+          format: uri
+          description: Primary URL to paper page
+          example: https://arxiv.org/abs/1706.03762
+        pdfUrl:
+          type: string
+          format: uri
+          description: Direct PDF link (optional)
+          example: https://arxiv.org/pdf/1706.03762.pdf
+        venue:
+          type: string
+          maxLength: 200
+          description: Journal or conference name (optional)
+          example: NeurIPS 2017
+        year:
+          type: integer
+          minimum: 1900
+          maximum: 2100
+          description: Publication year
+          example: 2017
+        citations:
+          type: integer
+          minimum: 0
+          default: 0
+          description: Citation count
+          example: 85000
+        addedAt:
+          type: string
+          format: date-time
+          description: When added to repository
+          example: "2026-01-19T10:30:00.000Z"
+        updatedAt:
+          type: string
+          format: date-time
+          description: Last update timestamp
+          example: "2026-01-19T10:30:00.000Z"
+
+    PaperInput:
+      type: object
+      required:
+        - title
+        - authors
+        - abstract
+        - publicationDate
+        - source
+        - url
+        - year
+      properties:
+        doi:
+          type: string
+          pattern: '^10\.\d{4,}'
+        title:
+          type: string
+          minLength: 1
+          maxLength: 500
+        authors:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/Author'
+        abstract:
+          type: string
+          minLength: 10
+          maxLength: 5000
+        publicationDate:
+          type: string
+          format: date
+        source:
+          type: string
+          enum: [arxiv, dblp, manual]
+        sourceId:
+          type: string
+        keywords:
+          type: array
+          items:
+            type: string
+          maxItems: 20
+        url:
+          type: string
+          format: uri
+        pdfUrl:
+          type: string
+          format: uri
+        venue:
+          type: string
+          maxLength: 200
+        year:
+          type: integer
+          minimum: 1900
+          maximum: 2100
+        citations:
+          type: integer
+          minimum: 0
+          default: 0
+
+    Author:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 200
+          description: Author full name
+          example: Ashish Vaswani
+        affiliation:
+          type: string
+          maxLength: 200
+          description: Institution or organization (optional)
+          example: Google Brain
+
+    Pagination:
+      type: object
+      properties:
+        currentPage:
+          type: integer
+          example: 1
+        totalPages:
+          type: integer
+          example: 5
+        totalItems:
+          type: integer
+          example: 87
+        itemsPerPage:
+          type: integer
+          example: 20
+        hasNext:
+          type: boolean
+          example: true
+        hasPrev:
+          type: boolean
+          example: false
+
+    Error:
+      type: object
+      required:
+        - error
+        - message
+      properties:
+        error:
+          type: string
+          description: Error type identifier
+          example: ValidationError
+        message:
+          type: string
+          description: Human-readable error message
+          example: Invalid DOI format
+        details:
+          type: object
+          description: Additional error context (optional)
+          additionalProperties: true
+
+  responses:
+    ValidationError:
+      description: Validation error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: ValidationError
+            message: Invalid input data
+            details:
+              field: doi
+              reason: Must match pattern ^10\.d{4,}
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: NotFoundError
+            message: Paper not found
+
+    ServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: InternalError
+            message: An unexpected error occurred
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token for authentication (future use)
+
+# Future: Add authentication for multi-user scenarios
+# security:
+#   - bearerAuth: []

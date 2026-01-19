@@ -1,0 +1,39 @@
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+.npm
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Build outputs
+dist/
+build/
+coverage/
+
+# Data files
+backend/data/papers.json
+backend/data/backups/
+
+# Logs
+*.log
+logs/
+
+# OS files
+.DS_Store
+Thumbs.db
+*.swp
+*.tmp
+
+# IDE
+.vscode/
+.idea/
+*.iml
+
+# Testing
+.nyc_output/

@@ -1,0 +1,20 @@
+<!-- Search Component -->
+<div class="card tw-shadow-md">
+    <div class="card-body">
+        <form id="searchForm" class="tw-flex tw-gap-3">
+            <input type="text" id="searchInput" class="form-control" placeholder="Search by title, author, keywords..."
+                required />
+            <button type="submit" class="btn btn-primary tw-whitespace-nowrap">
+                🔍 Search
+            </button>
+        </form>
+        <div id="searchStatus" class="tw-mt-3 tw-text-sm tw-text-gray-600"></div>
+    </div>
+</div>
+
+<style>
+    #searchInput:focus {
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    }
+</style>

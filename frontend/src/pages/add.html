@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Paper - Paper Repository</title>
+
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Tailwind CSS 3 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="/src/styles/main.css">
+
+    <script>
+        tailwind.config = {
+            prefix: 'tw-',
+            corePlugins: {
+                preflight: false,
+            }
+        }
+    </script>
+</head>
+
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark tw-shadow-lg">
+        <div class="container">
+            <a class="navbar-brand tw-font-bold" href="/">
+                📚 Paper Repository
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">Search</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/src/pages/add.html">Add Paper</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/src/pages/browse.html">Browse</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container tw-py-8">
+        <div class="row">
+            <div class="col-lg-8 mx-auto">
+                <h1 class="tw-text-4xl tw-font-bold tw-mb-6 tw-text-gray-800">
+                    Add Paper to Repository
+                </h1>
+
+                <div id="message" class="tw-mb-4"></div>
+
+                <!-- Method Selection -->
+                <div class="card tw-mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title">Select Method</h5>
+                        <div class="btn-group w-100" role="group">
+                            <input type="radio" class="btn-check" name="method" id="methodSearch" value="search"
+                                checked>
+                            <label class="btn btn-outline-primary" for="methodSearch">Search by Terms</label>
+
+                            <input type="radio" class="btn-check" name="method" id="methodId" value="id">
+                            <label class="btn btn-outline-primary" for="methodId">By ID</label>
+
+                            <input type="radio" class="btn-check" name="method" id="methodManual" value="manual">
+                            <label class="btn btn-outline-primary" for="methodManual">Manual Entry</label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Search by Terms Form -->
+                <div class="card tw-mb-4" id="searchForm">
+                    <div class="card-body">
+                        <h5 class="card-title">Search Papers by Terms</h5>
+                        <form id="externalSearchForm">
+                            <div class="mb-3">
+                                <label class="form-label">Source</label>
+                                <div class="btn-group w-100" role="group">
+                                    <input type="radio" class="btn-check" name="searchSource" id="searchArxiv"
+                                        value="arxiv" checked>
+                                    <label class="btn btn-outline-secondary" for="searchArxiv">arXiv</label>
+                                    <input type="radio" class="btn-check" name="searchSource" id="searchDblp"
+                                        value="dblp">
+                                    <label class="btn btn-outline-secondary" for="searchDblp">DBLP</label>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="searchQuery" class="form-label">Search Terms</label>
+                                <input type="text" class="form-control" id="searchQuery" required
+                                    placeholder="e.g., machine learning, transformers, neural networks">
+                            </div>
+                            <button type="submit" class="btn btn-primary">
+                                🔍 Search
+                            </button>
+                        </form>
+
+                        <!-- Search Results -->
+                        <div id="searchResults" class="tw-mt-4" style="display: none;">
+                            <h6 class="tw-font-semibold tw-mb-3">Search Results</h6>
+                            <div id="searchResultsList"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Fetch Form (arXiv/DBLP by ID) -->
+                <div class="card tw-mb-4" id="fetchForm" style="display: none;">
+                    <div class="card-body">
+                        <h5 class="card-title">Fetch by ID</h5>
+                        <form id="fetchPaperForm">
+                            <div class="mb-3">
+                                <label class="form-label">Source</label>
+                                <div class="btn-group w-100 tw-mb-3" role="group">
+                                    <input type="radio" class="btn-check" name="fetchSource" id="fetchArxiv"
+                                        value="arxiv" checked>
+                                    <label class="btn btn-outline-secondary" for="fetchArxiv">arXiv</label>
+                                    <input type="radio" class="btn-check" name="fetchSource" id="fetchDblp"
+                                        value="dblp">
+                                    <label class="btn btn-outline-secondary" for="fetchDblp">DBLP</label>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="identifier" class="form-label">
+                                    <span id="identifierLabel">arXiv ID</span>
+                                    <small class="text-muted">(e.g., 1706.03762)</small>
+                                </label>
+                                <input type="text" class="form-control" id="identifier" required
+                                    placeholder="Enter arXiv ID">
+                            </div>
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="checkbox" id="autoAdd" checked>
+                                <label class="form-check-label" for="autoAdd">
+                                    Automatically add to repository
+                                </label>
+                            </div>
+                            <button type="submit" class="btn btn-primary">
+                                🔍 Fetch & Add
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Manual Entry Form -->
+                <div class="card tw-mb-4" id="manualForm" style="display: none;">
+                    <div class="card-body">
+                        <h5 class="card-title">Manual Entry</h5>
+                        <form id="manualPaperForm">
+                            <div class="mb-3">
+                                <label for="title" class="form-label">Title *</label>
+                                <input type="text" class="form-control" id="title" required>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="authors" class="form-label">Authors * (one per line)</label>
+                                <textarea class="form-control" id="authors" rows="3" required
+                                    placeholder="John Doe&#10;Jane Smith"></textarea>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="abstract" class="form-label">Abstract *</label>
+                                <textarea class="form-control" id="abstract" rows="4" required></textarea>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="publicationDate" class="form-label">Publication Date *</label>
+                                    <input type="date" class="form-control" id="publicationDate" required>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="year" class="form-label">Year *</label>
+                                    <input type="number" class="form-control" id="year" required min="1900" max="2100">
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="url" class="form-label">URL *</label>
+                                <input type="url" class="form-control" id="url" required>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="doi" class="form-label">DOI (optional)</label>
+                                <input type="text" class="form-control" id="doi" placeholder="10.1234/example">
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="pdfUrl" class="form-label">PDF URL (optional)</label>
+                                <input type="url" class="form-control" id="pdfUrl">
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="venue" class="form-label">Venue (optional)</label>
+                                <input type="text" class="form-control" id="venue" placeholder="e.g., NeurIPS 2023">
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="keywords" class="form-label">Keywords (comma-separated, optional)</label>
+                                <input type="text" class="form-control" id="keywords"
+                                    placeholder="machine learning, AI, transformers">
+                            </div>
+
+                            <button type="submit" class="btn btn-success">
+                                ✅ Add to Repository
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Preview (appears after fetch) -->
+                <div class="card tw-mb-4" id="preview" style="display: none;">
+                    <div class="card-body">
+                        <h5 class="card-title">Paper Preview</h5>
+                        <div id="previewContent"></div>
+                        <button class="btn btn-success" id="confirmAdd">
+                            ✅ Add to Repository
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Main Script -->
+    <script type="module">
+        import api from '/src/services/api.js';
+
+        let fetchedPaper = null;
+
+        // Method switching
+        document.querySelectorAll('input[name="method"]').forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                const method = e.target.value;
+                document.getElementById('searchForm').style.display = method === 'search' ? 'block' : 'none';
+                document.getElementById('fetchForm').style.display = method === 'id' ? 'block' : 'none';
+                document.getElementById('manualForm').style.display = method === 'manual' ? 'block' : 'none';
+                document.getElementById('preview').style.display = 'none';
+                document.getElementById('searchResults').style.display = 'none';
+            });
+        });
+
+        // Source switching for fetch by ID
+        document.querySelectorAll('input[name="fetchSource"]').forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                const source = e.target.value;
+                if (source === 'arxiv') {
+                    document.getElementById('identifierLabel').textContent = 'arXiv ID';
+                    document.getElementById('identifier').placeholder = 'Enter arXiv ID (e.g., 1706.03762)';
+                } else if (source === 'dblp') {
+                    document.getElementById('identifierLabel').textContent = 'DOI or Title';
+                    document.getElementById('identifier').placeholder = 'Enter DOI or search term';
+                }
+            });
+        });
+
+        // External search form
+        document.getElementById('externalSearchForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const query = document.getElementById('searchQuery').value.trim();
+            const source = document.querySelector('input[name="searchSource"]:checked').value;
+
+            if (!query) return;
+
+            showMessage('Searching...', 'info');
+
+            try {
+                const response = await fetch(`/api/external-search?q=${encodeURIComponent(query)}&source=${source}&limit=20`);
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.message || 'Search failed');
+                }
+
+                displaySearchResults(data.results, source);
+                showMessage(`Found ${data.results.length} results`, 'success');
+            } catch (error) {
+                showMessage(`❌ Error: ${error.message}`, 'danger');
+            }
+        });
+
+        // Display search results
+        function displaySearchResults(results, source) {
+            const resultsDiv = document.getElementById('searchResults');
+            const listDiv = document.getElementById('searchResultsList');
+
+            if (!results || results.length === 0) {
+                listDiv.innerHTML = '<p class="text-muted">No results found</p>';
+                resultsDiv.style.display = 'block';
+                return;
+            }
+
+            listDiv.innerHTML = results.map(paper => `
+                <div class="card tw-mb-3">
+                    <div class="card-body">
+                        <h6 class="card-title">${paper.title}</h6>
+                        <p class="card-text tw-text-sm tw-text-gray-600">
+                            ${Array.isArray(paper.authors) ? paper.authors.join(', ') : paper.authors || 'Unknown authors'}
+                        </p>
+                        <div class="tw-flex tw-gap-2 tw-mb-2">
+                            <span class="badge bg-primary">${source.toUpperCase()}</span>
+                            <span class="badge bg-secondary">${paper.year || 'N/A'}</span>
+                            ${paper.venue ? `<span class="badge bg-info">${paper.venue}</span>` : ''}
+                        </div>
+                        <div class="tw-flex tw-gap-2">
+                            <button class="btn btn-sm btn-success add-paper-btn" 
+                                data-id="${paper.arxivId || paper.id}" 
+                                data-source="${source}">
+                                ➕ Add to Repository
+                            </button>
+                            ${paper.url ? `<a href="${paper.url}" target="_blank" class="btn btn-sm btn-outline-primary">📄 View</a>` : ''}
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+
+            resultsDiv.style.display = 'block';
+
+            // Attach click handlers to add buttons
+            document.querySelectorAll('.add-paper-btn').forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                    const identifier = e.target.dataset.id;
+                    const source = e.target.dataset.source;
+
+                    e.target.disabled = true;
+                    e.target.textContent = 'Adding...';
+
+                    try {
+                        const data = await api.fetchPaper(identifier, source, true);
+
+                        if (data.added) {
+                            showMessage('✅ Paper successfully added to repository!', 'success');
+                            e.target.textContent = '✅ Added';
+                            e.target.classList.remove('btn-success');
+                            e.target.classList.add('btn-secondary');
+                        }
+                    } catch (error) {
+                        showMessage(`❌ Error adding paper: ${error.message}`, 'danger');
+                        e.target.disabled = false;
+                        e.target.textContent = '➕ Add to Repository';
+                    }
+                });
+            });
+        }
+
+        // Fetch paper form (by ID)
+        document.getElementById('fetchPaperForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const identifier = document.getElementById('identifier').value.trim();
+            const source = document.querySelector('input[name="fetchSource"]:checked').value;
+            const autoAdd = document.getElementById('autoAdd').checked;
+
+            showMessage('Fetching paper...', 'info');
+
+            try {
+                const data = await api.fetchPaper(identifier, source, autoAdd);
+
+                if (data.added) {
+                    showMessage('✅ Paper successfully added to repository!', 'success');
+                    setTimeout(() => window.location.href = '/', 2000);
+                } else {
+                    fetchedPaper = data.paper;
+                    showPreview(data.paper);
+                }
+            } catch (error) {
+                showMessage(`❌ Error: ${error.message}`, 'danger');
+            }
+        });
+
+        // Manual entry form
+        document.getElementById('manualPaperForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const authorsText = document.getElementById('authors').value.trim();
+            const authors = authorsText.split('\n').filter(a => a.trim()).map(name => ({ name: name.trim() }));
+
+            const keywordsText = document.getElementById('keywords').value.trim();
+            const keywords = keywordsText ? keywordsText.split(',').map(k => k.trim()) : [];
+
+            const paper = {
+                title: document.getElementById('title').value.trim(),
+                authors,
+                abstract: document.getElementById('abstract').value.trim(),
+                publicationDate: document.getElementById('publicationDate').value,
+                year: parseInt(document.getElementById('year').value),
+                url: document.getElementById('url').value.trim(),
+                doi: document.getElementById('doi').value.trim() || undefined,
+                pdfUrl: document.getElementById('pdfUrl').value.trim() || undefined,
+                venue: document.getElementById('venue').value.trim() || undefined,
+                keywords,
+                source: 'manual'
+            };
+
+            showMessage('Adding paper...', 'info');
+
+            try {
+                await api.addPaper(paper);
+                showMessage('✅ Paper successfully added to repository!', 'success');
+                setTimeout(() => window.location.href = '/', 2000);
+            } catch (error) {
+                showMessage(`❌ Error: ${error.message}`, 'danger');
+            }
+        });
+
+        // Confirm add button
+        document.getElementById('confirmAdd').addEventListener('click', async () => {
+            if (!fetchedPaper) return;
+
+            showMessage('Adding paper...', 'info');
+
+            try {
+                await api.addPaper(fetchedPaper);
+                showMessage('✅ Paper successfully added to repository!', 'success');
+                setTimeout(() => window.location.href = '/', 2000);
+            } catch (error) {
+                showMessage(`❌ Error: ${error.message}`, 'danger');
+            }
+        });
+
+        // Show message
+        function showMessage(text, type) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.innerHTML = `<div class="alert alert-${type}">${text}</div>`;
+        }
+
+        // Show preview
+        function showPreview(paper) {
+            const preview = document.getElementById('preview');
+            const content = document.getElementById('previewContent');
+
+            content.innerHTML = `
+                <h6>${paper.title}</h6>
+                <p class="text-muted">${paper.authors.map(a => a.name).join(', ')}</p>
+                <p><small>${paper.abstract.substring(0, 300)}...</small></p>
+                <p><strong>Source:</strong> ${paper.source} | <strong>Year:</strong> ${paper.year}</p>
+            `;
+
+            preview.style.display = 'block';
+            preview.scrollIntoView({ behavior: 'smooth' });
+        }
+    </script>
+</body>
+
+</html>
