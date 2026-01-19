@@ -1,9 +1,9 @@
 <!-- Sync Impact Report
-Version change: N/A → 1.0.0
-List of modified principles: N/A (initial creation)
-Added sections: Core Principles (4 principles), Technical Standards, Contribution Guidelines, Governance
-Removed sections: N/A
-Templates requiring updates: None (initial)
+Version change: 1.0.0 → 1.1.0
+List of modified principles: Added V. Comprehensive Documentation
+Added sections: None
+Removed sections: None
+Templates requiring updates: None
 Follow-up TODOs: None
 -->
 
@@ -23,6 +23,9 @@ The library must provide automated tools for generating citations in multiple fo
 ### IV. Moderation of Contributions
 All submissions undergo rigorous moderation including plagiarism checks, peer review simulation, and verification of academic standards. Contributors must agree to ethical guidelines, and the library reserves the right to reject or remove content that violates these principles.
 
+### V. Comprehensive Documentation
+All aspects of the library, including code, APIs, processes, and changes, must be thoroughly documented. Documentation must be accurate, up-to-date, and accessible to users and contributors. Changes to the library require corresponding documentation updates.
+
 ## Technical Standards
 Papers stored in PDF and/or HTML formats for accessibility. Metadata in JSON/XML formats following established schemas. RESTful API for programmatic access. Version control for paper updates and metadata corrections.
 
@@ -32,4 +35,4 @@ Contributors must provide complete metadata and original papers. Submissions req
 ## Governance
 Constitution supersedes all other practices. Amendments require community consensus, documentation, and migration plan. All changes must verify compliance with core principles.
 
-**Version**: 1.0.0 | **Ratified**: 2026-01-19 | **Last Amended**: 2026-01-19
+**Version**: 1.1.0 | **Ratified**: 2026-01-19 | **Last Amended**: 2026-01-19
