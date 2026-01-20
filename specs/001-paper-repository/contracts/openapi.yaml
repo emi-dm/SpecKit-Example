@@ -8,10 +8,12 @@ info:
     email: support@example.com
 
 servers:
-  - url: http://localhost:3000/api
-    description: Development server
-  - url: https://api.paperrepository.com/api
-    description: Production server
+  - url: http://localhost:3000/api/v1
+    description: Development server (v1)
+  - url: https://api.paperrepository.com/api/v1
+    description: Production server (v1)
+
+# NOTE: API is versioned at /api/v1. Create a deprecation plan for future versions (see specs/001-paper-repository/spec.md FR-011).
 
 tags:
   - name: papers
@@ -337,6 +339,22 @@ paths:
         '500':
           $ref: '#/components/responses/ServerError'
 
+  /metrics:
+    get:
+      tags:
+        - health
+        - metrics
+      summary: Metrics endpoint
+      description: Expose Prometheus compatible metrics for monitoring (text/plain; versioned)
+      operationId: metrics
+      responses:
+        '200':
+          description: Metrics in Prometheus text format
+          content:
+            text/plain:
+              schema:
+                type: string
+    
   /health:
     get:
       tags:
@@ -576,21 +594,78 @@ components:
           type: object
           description: Additional error context (optional)
           additionalProperties: true
+        requestId:
+          type: string
+          description: Correlation ID for tracing the request
+          example: 7b9f3a2e-1d4c-4df1-9c2a-3f9d0f2b6e7a
+
+    Problem:
+      type: object
+      properties:
+        type:
+          type: string
+          description: A URI reference that identifies the problem type
+          example: "https://tools.ietf.org/html/rfc7807#section-3.1"
+        title:
+          type: string
+          description: Short, human-readable summary of the problem
+          example: Validation Error
+        status:
+          type: integer
+          description: HTTP status code
+          example: 400
+        detail:
+          type: string
+          description: Human-readable explanation specific to this occurrence
+          example: "Invalid DOI format: must match ^10\.\\d{4,}"
+        instance:
+          type: string
+          description: A URI reference that identifies the specific occurrence of the problem
+          example: "/api/v1/papers"
+        requestId:
+          type: string
+          description: Correlation ID for tracing the request
+          example: 7b9f3a2e-1d4c-4df1-9c2a-3f9d0f2b6e7a
 
   responses:
     ValidationError:
       description: Validation error
       content:
-        application/json:
+        application/problem+json:
           schema:
-            $ref: '#/components/schemas/Error'
+            $ref: '#/components/schemas/Problem'
           example:
-            error: ValidationError
-            message: Invalid input data
-            details:
-              field: doi
-              reason: Must match pattern ^10\.d{4,}
+            type: "https://example.com/probs/validation"
+            title: Validation Error
+            status: 400
+            detail: "One or more fields failed validation"
+            requestId: "7b9f3a2e-1d4c-4df1-9c2a-3f9d0f2b6e7a"
+            
+    NotFound:
+      description: Resource not found
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+          example:
+            type: "https://example.com/probs/not-found"
+            title: Not Found
+            status: 404
+            detail: "Paper not found"
+            requestId: "7b9f3a2e-1d4c-4df1-9c2a-3f9d0f2b6e7a"
 
+    ServerError:
+      description: Internal server error
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+          example:
+            type: "https://example.com/probs/internal"
+            title: Internal Error
+            status: 500
+            detail: "An unexpected error occurred"
+            requestId: "7b9f3a2e-1d4c-4df1-9c2a-3f9d0f2b6e7a"
     NotFound:
       description: Resource not found
       content:
