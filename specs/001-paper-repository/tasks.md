@@ -153,6 +153,16 @@ description: "Task list for Paper Repository implementation"
 - [ ] T056 Integrate caching into search and external API calls in backend/src/services/storage.js
 - [ ] T057 [P] Add navigation menu in frontend/index.html linking all pages (search, add, browse)
 - [ ] T058 [P] Implement responsive mobile layout using Tailwind breakpoints in frontend/src/styles/main.css
+- [ ] T073 Add performance test suite and CI job using k6 or similar to run load profiles: baseline (50 concurrent), stress (200 concurrent) against a dataset of 1000 papers. Include threshold checks for p95 and error rates. (backend/tests/performance)
+- [ ] T074 Add atomic write and concurrency tests for `backend/data/papers.json`: simulate concurrent writes, verify file-locking, compaction behavior, and create migration task to SQLite when concurrency threshold exceeded. (backend/tests/concurrency)
+- [ ] T075 Update API base path to `/api/v1/` and add a versioning and deprecation plan. Update routes and create integration tests to validate versioned endpoints. (backend/src/api, contracts/openapi.yaml)
+- [ ] T076 Add instrumentation and monitoring tasks: expose `/metrics` for Prometheus, collect p50/p95/p99 latencies per endpoint, request rates and error rates, and add basic alerting thresholds. (backend/src/monitoring)
+- [ ] T077 Make unit and integration tests required (not optional): add CI job to fail on missing test coverage for critical modules (storage, arxiv/dblp, routes). (backend/.github/workflows)
+- [ ] T078 Perform accessibility audit (WCAG 2.1 AA) and fix issues (use axe-core or similar). (frontend/tests/accessibility)
+- [ ] T079 Reconcile and pin timeouts/retry policies in `arxiv.js` and `dblp.js` to match spec defaults (timeout 5s, 2 retries with exponential backoff), and add tests simulating external API failures. (backend/src/services)
+- [ ] T080 Add performance benchmarking documentation and reproducible scripts in `test-performance.js` and `backend/tests/performance/README.md`
+
+**Checkpoint**: These tasks ensure the stack choice will meet the performance, reliability and observability requirements.
 
 ---
 

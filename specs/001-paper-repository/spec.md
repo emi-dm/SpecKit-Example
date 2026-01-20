@@ -87,6 +87,23 @@ As a researcher, I want to browse papers in the repository so that I can discove
 - **FR-004**: System MUST integrate with arxiv and dblp to fetch paper data
 - **FR-005**: System MUST prevent duplicate papers based on DOI
 - **FR-006**: System MUST provide browsing functionality for all papers
+- **FR-007**: For the MVP (single-user), add operations MAY be unauthenticated; the system MUST be configurable to require authentication/authorization for mutating operations in future multi-user deployments. [Assumption: single-user MVP]
+- **FR-008**: API error responses MUST follow a consistent schema (for example [Problem Details for HTTP APIs](https://tools.ietf.org/html/rfc7807) / `application/problem+json`) and MUST include: an error code, a human‑readable message, optional machine‑readable details, and a requestId for traceability.
+- **FR-009**: POST `/api/papers` MUST define duplicate handling behavior: if a paper with the same DOI exists, the API MUST return `409 Conflict` with a reference to the existing resource; idempotent re‑submissions of identical data MAY return `200 OK` with the existing resource.
+- **FR-010**: External dependency calls (arXiv/DBLP) MUST have configurable timeouts (default 5s), a retry policy (default 2 retries with exponential backoff) and a defined fallback: on repeated failures the system MUST surface a clear user‑visible error and allow manual entry of metadata.
+- **FR-011**: The API MUST use explicit versioning (e.g., `/api/v1/`) and include a versioning policy as part of the requirements.
+- **FR-012**: The system MUST expose operational endpoints and metrics (e.g., `/api/health`, latency and error metrics per endpoint) and capture 95th‑percentile latency for critical operations.
+- **FR-013**: All user inputs (DOI, URL, free text) MUST have validation and sanitization rules defined as requirements, with examples of valid and invalid inputs documented.
+- **FR-014**: The UI MUST meet accessibility requirements (WCAG 2.1 AA), including keyboard navigation, ARIA labels, alt text for images and screen‑reader friendly semantics.
+- **FR-015**: The UI MUST define responsive breakpoints for mobile, tablet and desktop and include layout expectations for each breakpoint.
+- **FR-016**: The storage service MUST create backups on deletions and regular backups (daily), retaining the last 10 backups with documented recovery/restore procedure.
+- **FR-017**: Performance and caching requirements MUST be specified: define caching strategy (TTL, invalidation), an in‑memory cache for search with LRU eviction, and an acceptable degradation strategy under high load.
+
+### Non-Functional Requirements
+
+- **NFR-001**: Performance targets and SLAs MUST be defined per user journey (search, add, browse) and include measurement methods and percentiles.
+- **NFR-002**: Security and privacy requirements MUST be specified including input validation, secure logging (no sensitive data), retention policies and incident response expectations.
+- **NFR-003**: Observability requirements MUST be specified (health, metrics, distributed tracing or request IDs for correlating errors).
 
 ### Key Entities *(include if feature involves data)*
 
@@ -102,7 +119,9 @@ As a researcher, I want to browse papers in the repository so that I can discove
 
 ### Measurable Outcomes
 
-- **SC-001**: Users can perform a search and see results in under 5 seconds
-- **SC-002**: 95% of searches return relevant papers when matching terms exist
-- **SC-003**: Repository supports adding at least 1000 papers without performance degradation
-- **SC-004**: 90% of users can successfully add a paper using DOI
+- **SC-001**: Local searches (served from the repository) must have 95th‑percentile latency < 3 seconds; end‑to‑end searches that include external fetches (arXiv/DBLP) must have 95th‑percentile latency < 5 seconds. Measurement method: synthetic and real‑user monitoring measuring p50/p95/p99 per endpoint.
+- **SC-002**: 95% of searches return relevant papers when matching terms exist; relevance shall be validated by an automated test suite against a labeled test set and periodic sampling of user feedback.
+- **SC-003**: Repository must support storing and serving at least 1000 papers with <10% increase in 95th‑percentile latency under target concurrency (example baseline: 50 concurrent users). Load and degradation profiles must be documented.
+- **SC-004**: In a usability test (N ≥ 20), 90% of participants must be able to successfully add a paper using DOI (complete flow without errors in under 2 minutes). Test method must be documented in `quickstart.md` or a test plan.
+
+**Note**: For all SCs, the measurement procedures, test datasets and thresholds MUST be documented and reproducible.
