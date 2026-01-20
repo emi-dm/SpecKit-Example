@@ -160,7 +160,8 @@ description: "Task list for Paper Repository implementation"
 - [ ] T077 Make unit and integration tests required (not optional): add CI job to fail on missing test coverage for critical modules (storage, arxiv/dblp, routes). (backend/.github/workflows)
 - [ ] T078 Perform accessibility audit (WCAG 2.1 AA) and fix issues (use axe-core or similar). (frontend/tests/accessibility)
 - [ ] T079 Reconcile and pin timeouts/retry policies in `arxiv.js` and `dblp.js` to match spec defaults (timeout 5s, 2 retries with exponential backoff), and add tests simulating external API failures. (backend/src/services)
-- [ ] T080 Add performance benchmarking documentation and reproducible scripts in `test-performance.js` and `backend/tests/performance/README.md`
+- [ ] T080 Add performance benchmarking documentation and reproducible scripts in `backend/tests/performance/README.md`
+- [ ] T081 Add GitHub Actions workflow for performance (k6 baseline) and accessibility (pa11y) checks triggered on PRs and manual dispatch. (/.github/workflows/performance.yml)
 
 **Checkpoint**: These tasks ensure the stack choice will meet the performance, reliability and observability requirements.
 
